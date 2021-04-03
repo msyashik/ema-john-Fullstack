@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import "../../fakeData";
-import fakeData from "../../fakeData";
 import {
   addToDatabaseCart,
   getDatabaseCart,
@@ -11,19 +9,27 @@ import "./Shop.css";
 import { Link } from "react-router-dom";
 
 const Shop = () => {
-  const first10 = fakeData.slice(0, 10);
-  const [products, setProducts] = useState(first10);
+  const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
+
+  useEffect(() => {
+    fetch("https://safe-chamber-11742.herokuapp.com/products")
+      .then((res) => res.json())
+      .then((data) => setProducts(data));
+  }, []);
 
   useEffect(() => {
     const savedCart = getDatabaseCart();
     const productKeys = Object.keys(savedCart);
-    const previousCart = productKeys.map((existingKey) => {
-      const product = fakeData.find((pd) => pd.key === existingKey);
-      product.quantity = savedCart[existingKey];
-      return product;
-    });
-    setCart(previousCart);
+    fetch("https://safe-chamber-11742.herokuapp.com/productsByKeys", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(productKeys),
+    })
+      .then((res) => res.json())
+      .then((data) => setCart(data));
   }, []);
 
   const handleAddProduct = (product) => {
